@@ -1,341 +1,446 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Feliz cumpleaños</title>
-    <style>
-        h1 {
-            color: red;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin-top: 50px;
-        }
-        .row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 40px;
-        }
-        .col {
-            width: 45%;
-            text-align: center;
-        }
-        img {
-            width: 300px;
-            border-radius: 15px;
-        }
-        p {
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
-        button {
-            margin-top: 30px;
-            padding: 12px 25px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            background-color: red;
-            color: white;
-            cursor: pointer;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        button:hover {
-            background-color: #b30000;
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Feliz cumpleaños</title>
+<style>
+    :root {
+        --blue-pastel: #89CFF0; /* ton bleu pastel choisi */
+        --pink-pale: #FFD6E7;
+
+    }
+    html,body { height:100%; margin:0; }
+    body {
+        font-family: Arial, sans-serif;
+        background-color: var(--blue-pastel);
+        position: relative;
+        overflow: hidden;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+    }
+
+
+    h1 { color: red; text-align:center; margin-top:0; }
+    p { text-align:center; font-size:20px; margin:10px 0 20px; }
+
+    .row { display:flex; gap:30px; justify-content:space-between; align-items:center; margin:40px 0; }
+    .col { width:45%; text-align:center; }
+    img { width:300px; border-radius:15px; display:block; margin:auto; max-width:100%; height:auto; }
+    button {
+        display:block;
+        margin:30px auto;
+        padding:12px 25px;
+        font-size:18px;
+        border:none;
+        border-radius:10px;
+        background-color:red;
+        color:white;
+        cursor:pointer;
+    }
+    button:hover { background:#b30000; }
+
+    /* smoke layer */
+    #smokeLayer { pointer-events:none; position:fixed; left:0; top:0; width:100%; height:100%; overflow:hidden; z-index:1100; }
+
+    /* encadré rose centré */
+    .encadre {
+        position: fixed;
+        top:50%;
+        left:50%;
+        transform: translate(-50%,-50%);
+        background: var(--pink-pale);
+        border: 2px solid #FF9ABB;
+        padding: 20px 28px;
+        border-radius: 14px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+        font-size:18px;
+        color:#C40050;
+        text-align:center;
+        z-index:1200;
+    }
+    .encadre button { background:#ffb3cc; color:#7a0030; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; }
+
+    /* small responsive tweaks */
+    @media (max-width:900px) {
+        .row { flex-direction:column; gap:20px; }
+        .col { width:100%; }
+        .stage { left:1.5rem; right:1.5rem; top:1.5rem; bottom:1.5rem; }
+    }
+</style>
 </head>
 <body>
-    <h1>Feliz cumpleaños mon coeur &lt;3</h1>
 
-<img src="dessin1.jpg" style="display:block; margin:auto;">
+    <!-- bords rose pâle -->
+    <div class="border-top"></div>
+    <div class="border-bottom"></div>
+    <div class="border-left"></div>
+    <div class="border-right"></div>
 
-<p style="text-align:center;">!!! Para celebrarlo conmigo haz un clic abajo !!!</p>
+    <div class="stage" id="stage">
+        <h1>Feliz cumpleaños mon coeur &lt;3</h1>
+        <img src="dessin1.jpg" id="mainIntroImg" alt="dessin1" style="width:320px;">
+        <p>!!! Para celebrarlo conmigo haz un clic abajo !!!</p>
+        <button id="btnFiesta">Quiero ir a tu fiesta !</button>
+    </div>
 
-<button id="btnFiesta">Quiero ir a tu fiesta !</button>
-
-<!-- Conteneur pour les confettis -->
-<div id="confetti-container" style="position:absolute; top:0; left:0; width:100%; height:0; pointer-events:none;"></div>
+    <!-- conteneurs dynamiques (confetti / smoke) -->
+    <div id="confetti-container" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:900;"></div>
+    <!-- smokeLayer created dynamically when needed -->
 
 <script>
-// Fonction pour créer un confetti
-function createConfetti() {
-    const confetti = document.createElement('div');
-    confetti.style.position = 'absolute';
-    confetti.style.width = Math.random() * 10 + 5 + 'px';
-    confetti.style.height = confetti.style.width;
-    confetti.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
-    confetti.style.top = '-20px';
-    confetti.style.left = Math.random() * window.innerWidth + 'px';
-    confetti.style.opacity = Math.random() + 0.5;
-    confetti.style.borderRadius = '50%';
-    confetti.style.pointerEvents = 'none';
-    confetti.style.zIndex = 1000;
+/* =========================
+   Helpers: confetti + util
+   ========================= */
+function rand(min,max){ return Math.random()*(max-min)+min; }
 
-    document.body.appendChild(confetti);
+/* Confettis init (quelques secondes au début) */
+(function startInitialConfetti(){
+    const container = document.getElementById('confetti-container');
+    let confettiInterval = setInterval(() => {
+        const c = document.createElement('div');
+        c.style.position='absolute';
+        const size = rand(6,14);
+        c.style.width = size+'px';
+        c.style.height = size+'px';
+        c.style.left = rand(0, innerWidth)+'px';
+        c.style.top = '-20px';
+        c.style.background = `hsl(${rand(0,360)},80%,60%)`;
+        c.style.opacity = rand(0.6,1);
+        c.style.borderRadius = '2px';
+        c.style.transform = `rotate(${rand(0,360)}deg)`;
+        c.style.pointerEvents='none';
+        c.style.zIndex=900;
+        container.appendChild(c);
+        const duration = rand(3000,6000);
+        const end = innerHeight + 40;
+        const start = performance.now();
+        (function animate(t){
+            const p = (t-start)/duration;
+            if(p<1){
+                c.style.top = (p*end) + 'px';
+                c.style.transform = `translateY(0) rotate(${p*720}deg)`;
+                requestAnimationFrame(animate);
+            } else c.remove();
+        })(start);
+    }, 90);
 
-    // Animation descente
-    const duration = Math.random() * 3000 + 3000; // 3-6 secondes
-    const end = window.innerHeight + 20;
+    setTimeout(()=> clearInterval(confettiInterval), 5000);
+})();
 
-    const start = performance.now();
-    function animate(time) {
-        const elapsed = time - start;
-        const progress = elapsed / duration;
-        if(progress < 1){
-            confetti.style.top = progress * end + 'px';
-            confetti.style.transform = `rotate(${progress * 360}deg)`;
-            requestAnimationFrame(animate);
-        } else {
-            confetti.remove();
-        }
-    }
-    requestAnimationFrame(animate);
+/* =========================
+   Etapes & logique principale
+   ========================= */
+
+const stage = document.getElementById('stage');
+const btnFiesta = document.getElementById('btnFiesta');
+
+btnFiesta.addEventListener('click', () => {
+    showPartyIntro();
+});
+
+/* ---- Scène 1: intro -> deux colonnes avec dessin3/dessin2 ---- */
+function showPartyIntro(){
+    clearStage();
+    const title = create('h1','🎉 Bienvenida a tu fiesta mi beibi !!! 🎉');
+    stage.appendChild(title);
+
+    const row = create('div'); row.className='row';
+    const colLeft = create('div'); colLeft.className = 'col';
+    const colRight = create('div'); colRight.className = 'col';
+
+    const p1 = create('p','Aunque estamos lejos ...');
+    const img1 = create('img'); img1.src = 'dessin3.jpg'; img1.alt='dessin3';
+    colLeft.appendChild(p1); colLeft.appendChild(img1);
+
+    const p2 = create('p','Vamos a celebrarlo juntos 💖');
+    const img2 = create('img'); img2.src = 'dessin2.jpg'; img2.alt='dessin2';
+    colRight.appendChild(img2); colRight.appendChild(p2);
+
+    row.appendChild(colLeft); row.appendChild(colRight);
+    stage.appendChild(row);
+
+    const btnNext = create('button','Por aqui ❤️');
+    btnNext.addEventListener('click', () => showBlowStage(btnNext));
+    stage.appendChild(btnNext);
 }
 
-// Générer plusieurs confettis par intervalle
-const confettiInterval = setInterval(createConfetti, 100);
+/* ---- Scène 2: zone avec personne souffle + gateau ---- */
+function showBlowStage(prevBtn){
+    clearStage();
 
-// Optionnel : arrêter après 5 secondes
-setTimeout(() => clearInterval(confettiInterval), 5000);
-        const btn = document.getElementById("btnFiesta");
+    // container horizontal
+    const container = create('div');
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    container.style.gap = '40px';
+    container.style.marginTop = '40px';
 
-        btn.addEventListener("click", () => {
+    const imgClickable = create('img'); imgClickable.src = 'personne souffle.jpg'; imgClickable.alt='personne souffle';
+    imgClickable.style.width = '250px';
+    imgClickable.style.cursor = 'pointer';
 
-            document.body.innerHTML = ""; // Nettoyage
+    const imgFinal = create('img'); imgFinal.src = 'gateau.jpg'; imgFinal.alt='gateau';
+    imgFinal.style.width = '300px';
 
-            // Nouveau titre
-            const title = document.createElement("h1");
-            title.textContent = "🎉 Bienvenida a tu fiesta mi beibi !!! 🎉";
-            document.body.appendChild(title);
+    container.appendChild(imgClickable); container.appendChild(imgFinal);
+    stage.appendChild(container);
 
-            // Conteneur gauche/droite
-            const row = document.createElement("div");
-            row.className = "row";
+    // zone pour afficher gateau/souffler/photo/bouton
+    const gateauZone = create('div'); gateauZone.style.textAlign='center'; gateauZone.style.marginTop='35px';
+    stage.appendChild(gateauZone);
 
-            // ---- COLONNE GAUCHE ----
-            const colLeft = document.createElement("div");
-            colLeft.className = "col";
+    // logique des souffles
+    let souffles = 0;
+    let locked = false;
 
-            const text1 = document.createElement("p");
-            text1.textContent = "Aunque estamos lejos ...";
+    imgClickable.addEventListener('click', function onClickBlow(){
+        if (locked) return;
+        souffles++;
+        if (souffles === 1){
+            imgFinal.src = 'souffle1.jpg';
+        } else if (souffles === 2){
+            imgFinal.src = 'souffle2.jpg';
+        } else if (souffles === 3){
+            imgFinal.src = 'souffle3.jpg';
+            // afficher photo + bouton et encadre + fumée
+            const finalImg = create('img'); finalImg.src = 'souffler.jpg'; finalImg.style.width='300px'; finalImg.style.display='block'; finalImg.style.margin='30px auto';
+            const btnSuite = create('button','Por tu regalito 🎁');
+            // ajouter à zone
+            gateauZone.appendChild(finalImg);
+            gateauZone.appendChild(btnSuite);
 
-            const img1 = document.createElement("img");
-            img1.src = "dessin3.jpg";
+            // créer encadré centré + start smoke
+            const encadre = create('div'); encadre.className = 'encadre';
+            encadre.innerHTML = `
+                🎉 <b>¡Bravo!</b><br><br>
+                ¡Has soplado tus velitas! 🎂❤️<br><br>
+            `;
+            const closeBtn = create('button','Cerrar');
+            closeBtn.addEventListener('click', () => {
+                encadre.remove();
+                stopSmoke();
+            });
+            encadre.appendChild(closeBtn);
+            document.body.appendChild(encadre);
 
-            colLeft.appendChild(text1);
-            colLeft.appendChild(img1);
+            // démarrer fumée (écran plein, dense)
+            startSmokeDense();
 
-            // ---- COLONNE DROITE ----
-            const colRight = document.createElement("div");
-            colRight.className = "col";
+            // empêcher nouveaux clics sur personne souffle
+            locked = true;
 
-            const text2 = document.createElement("p");
-            text2.textContent = "Vamos a celebrarlo juntos 💖";
+            // attacher listener du bouton POR TU REGALITO ici (existant)
+            btnSuite.addEventListener('click', () => {
+                showGiftSequence();
+            });
+        }
+    }, {once:false});
+}
 
-            const img2 = document.createElement("img");
-            img2.src = "dessin2.jpg";
-            colRight.appendChild(img2);
-            colRight.appendChild(text2);
-            
+/* ---- Scène 3: Por tu regalito -> don cadeau -> regalo -> pingouin ---- */
+function showGiftSequence(){
+    clearStage();
+    // première image don cadeau
+    const imgDon = create('img'); imgDon.src = 'don cadeau.jpg'; imgDon.style.width='300px'; imgDon.style.display='block'; imgDon.style.margin='40px auto'; imgDon.style.cursor='pointer';
+    stage.appendChild(imgDon);
 
-            // Ajout du bloc
-            row.appendChild(colLeft);
-            row.appendChild(colRight);
+    const regaloZone = create('div'); regaloZone.style.textAlign='center'; stage.appendChild(regaloZone);
+    const pingouinZone = create('div'); pingouinZone.style.textAlign='center'; stage.appendChild(pingouinZone);
 
-            document.body.appendChild(row);
-
-            // ---- NOUVEAU BOUTON ----
-            const btnNext = document.createElement("button");
-            btnNext.textContent = "Por aqui ❤️";
-            document.body.appendChild(btnNext);
-
-            btnNext.addEventListener("click", () => {
-    document.body.innerHTML = "";
-
-    // Conteneur horizontal
-    const container = document.createElement("div");
-    container.style.display = "flex";
-    container.style.justifyContent = "center";
-    container.style.alignItems = "center";
-    container.style.gap = "40px";
-    container.style.marginTop = "40px";
-
-    // ---- IMAGE CLIQUABLE (à gauche) ----
-    const imgClickable = document.createElement("img");
-    imgClickable.src = "personne souffle.jpg"; // ton image cliquable
-    imgClickable.style.width = "250px";
-    imgClickable.style.cursor = "pointer";
-
-    // ---- IMAGE PRINCIPALE (dessin4) ----
-    const imgFinal = document.createElement("img");
-    imgFinal.src = "gateau.jpg";
-    imgFinal.style.width = "300px";
-
-    // On ajoute les 2 images côte à côte
-    container.appendChild(imgClickable);
-    container.appendChild(imgFinal);
-
-    document.body.appendChild(container);
-
-    // ---- ZONE POUR AJOUTER LE GÂTEAU ----
-    const gateauZone = document.createElement("div");
-    gateauZone.style.textAlign = "center";
-    gateauZone.style.marginTop = "35px";
-
-    document.body.appendChild(gateauZone);
-
-    // ---- ACTION DE L’IMAGE CLIQUABLE ----
-    imgClickable.addEventListener("click", () => {
-        const gateau = document.createElement("img");
-        gateau.src = "souffler.jpg";  // ton gâteau
-        gateau.style.width = "300px";
-        gateau.style.display = "block";
-        gateau.style.margin = "auto";
-        gateauZone.appendChild(gateau);
-
-         const btnContinue = document.createElement("button");
-    btnContinue.textContent = "Por tu regalito 🎁";
-    btnContinue.style.display = "block";
-    btnContinue.style.margin = "40px auto";
-    document.body.appendChild(btnContinue);
-
-    btnContinue.addEventListener("click", () => {
-    document.body.innerHTML = "";
-
-    // --- Première image : don_cadeau ---
-    const imgDon = document.createElement("img");
-    imgDon.src = "don cadeau.jpg";
-    imgDon.style.width = "300px";
-    imgDon.style.display = "block";
-    imgDon.style.margin = "40px auto";
-    imgDon.style.cursor = "pointer";
-
-    document.body.appendChild(imgDon);
-
-    // Zone pour regalo
-    const regaloZone = document.createElement("div");
-    regaloZone.style.textAlign = "center";
-    document.body.appendChild(regaloZone);
-
-    // Zone pour pingouin
-    const pingouinZone = document.createElement("div");
-    pingouinZone.style.textAlign = "center";
-    document.body.appendChild(pingouinZone);
-
-    // --- CLIC SUR DON = montrer regalo ---
-    imgDon.addEventListener("click", () => {
-        // Crée et affiche regalo
-        const imgRegalo = document.createElement("img");
-        imgRegalo.src = "regalo.jpg";
-        imgRegalo.style.width = "300px";
-        imgRegalo.style.display = "block";
-        imgRegalo.style.margin = "20px auto";
-        imgRegalo.style.cursor = "pointer";
-
+    imgDon.addEventListener('click', () => {
+        const imgRegalo = create('img'); imgRegalo.src='regalo.jpg'; imgRegalo.style.width='300px'; imgRegalo.style.display='block'; imgRegalo.style.margin='20px auto'; imgRegalo.style.cursor='pointer';
         regaloZone.appendChild(imgRegalo);
 
-        imgRegalo.addEventListener("click", () => {
-    const imgPingouin = document.createElement("img");
-    imgPingouin.src = "pingouin.jpg";
-    imgPingouin.style.width = "300px";
-    imgPingouin.style.display = "block";
-    imgPingouin.style.margin = "20px auto";
+        imgRegalo.addEventListener('click', () => {
+            const imgPingouin = create('img'); imgPingouin.src='pingouin.jpg'; imgPingouin.style.width='300px'; imgPingouin.style.display='block'; imgPingouin.style.margin='20px auto';
+            pingouinZone.appendChild(imgPingouin);
 
-    pingouinZone.appendChild(imgPingouin);
+            // après 1s ajouter le bouton cœur qui traverse
+            setTimeout(() => {
+                const btnCoeur = create('button'); btnCoeur.innerHTML = '❤️'; 
+                btnCoeur.style.position='absolute';
+                btnCoeur.style.top = '50%';
+                btnCoeur.style.right = '-60px';
+                btnCoeur.style.fontSize='48px';
+                btnCoeur.style.background='transparent';
+                btnCoeur.style.border='none';
+                btnCoeur.style.cursor='pointer';
+                btnCoeur.style.transform='translateY(-50%)';
+                btnCoeur.style.zIndex='1050';
+                document.body.appendChild(btnCoeur);
 
-    // --- Après 2 secondes, ajouter le bouton coeur animé ---
-    setTimeout(() => {
-    const btnCoeur = document.createElement("button");
-    btnCoeur.innerHTML = "❤️"; // emoji cœur
-    btnCoeur.id = "btnCoeur";
+                // animation traverse de droite vers gauche
+                const anim = btnCoeur.animate([
+                    { right: '-60px' },
+                    { right: '110vw' }
+                ], { duration: 10000, easing: 'linear' });
+                anim.onfinish = () => btnCoeur.remove();
 
-    // Style pour animation horizontale droite -> gauche
-    btnCoeur.style.position = "absolute";
-    btnCoeur.style.top = "50%";      // vertical centré
-    btnCoeur.style.right = "-50px";  // commencer à droite hors écran
-    btnCoeur.style.fontSize = "50px";
-    btnCoeur.style.border = "none";
-    btnCoeur.style.background = "transparent";
-    btnCoeur.style.cursor = "pointer";
-    btnCoeur.style.transform = "translateY(-50%)"; // centrer verticalement
-
-    document.body.appendChild(btnCoeur);
-
-    // Animation CSS : droite -> gauche
-    btnCoeur.animate([
-        { right: '-50px' },
-        { right: '100vw' }  // traverse tout l'écran vers la gauche
-    ], {
-        duration: 10000,   // 6 secondes
-        iterations: 1,
-        easing: 'linear'
+                // click sur ce bouton: lance le mini-jeu du coeurPrincipal
+                btnCoeur.addEventListener('click', () => {
+                    btnCoeur.remove();
+                    startHeartGame();
+                });
+            }, 1000);
+        });
     });
+}
 
-    btnCoeur.addEventListener("click", () => {
-   document.body.innerHTML = ""; // Nettoyage
+/* ---- Mini-jeu des cœurs (coeurPrincipal mobile + 3 clics) ---- */
+function startHeartGame(){
+    clearStage();
 
-    // Créer le cœur interactif aléatoire
-    const coeur = document.createElement("img");
-    coeur.src = "coeur.jpeg";
-    coeur.style.width = "100px";
-    coeur.style.position = "absolute";
-    coeur.style.cursor = "pointer";
-    document.body.appendChild(coeur);
+    const coeurPrincipal = create('img'); coeurPrincipal.src='coeur.jpeg';
+    coeurPrincipal.style.width='100px';
+    coeurPrincipal.style.position='absolute';
+    coeurPrincipal.style.cursor='pointer';
+    coeurPrincipal.style.zIndex='1050';
+    document.body.appendChild(coeurPrincipal);
 
     let clicks = 0;
+    function randomPositionMain(){
+        const margin = 100;
+        const x = Math.random()*(window.innerWidth - margin) + 20;
+        const y = Math.random()*(window.innerHeight - margin) + 20;
+        coeurPrincipal.style.left = x + 'px';
+        coeurPrincipal.style.top = y + 'px';
+    }
+    randomPositionMain();
 
-    function positionAleatoire() {
-        const x = Math.random() * (window.innerWidth - 100);
-        const y = Math.random() * (window.innerHeight - 100);
-        coeur.style.left = x + "px";
-        coeur.style.top = y + "px";
+    // create floating heart effect on click
+    function createFloatingHeart(x,y){
+        const heart = create('div');
+        heart.textContent = '❤️';
+        heart.style.position='absolute';
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        heart.style.fontSize = (20 + Math.random()*36) + 'px';
+        heart.style.pointerEvents = 'none';
+        heart.style.zIndex = 1040;
+        document.body.appendChild(heart);
+
+        const duration = 1200 + Math.random()*800;
+        const dx = (Math.random()-0.5)*120;
+        const dy = -120 - Math.random()*80;
+        const start = performance.now();
+        (function frame(t){
+            const p = Math.min(1,(t-start)/duration);
+            heart.style.transform = `translate(${dx*p}px, ${dy*p}px) rotate(${p*720}deg)`;
+            heart.style.opacity = 1 - p;
+            if(p < 1) requestAnimationFrame(frame);
+            else heart.remove();
+        })(start);
     }
 
-    // Position initiale
-    positionAleatoire();
-
-    // Gestion des clics
-    coeur.addEventListener("click", () => {
+    coeurPrincipal.addEventListener('click', () => {
         clicks++;
+        // centre du coeur principal
+        const r = coeurPrincipal.getBoundingClientRect();
+        const cx = r.left + r.width/2;
+        const cy = r.top + r.height/2;
+        for(let i=0;i<5;i++) createFloatingHeart(cx, cy);
 
-        if (clicks < 3) {
-            // Déplacer le cœur aléatoirement
-            positionAleatoire();
+        if(clicks < 3){
+            randomPositionMain();
         } else {
-            // Dernier clic : afficher le message final
-            coeur.remove();
-
-            const message = document.createElement("div");
-            message.innerHTML = `
-                <h1 style="text-align:center; color:red;">TE QUIERO MI BEIBI !!!</h1>
-                <p style="text-align:center; font-size:20px;">
-                    !!! Solo quiero lo mejor para ti este año !!!<br>
-                    Mucho éxito y aún más amor &lt;3
-                </p>
+            coeurPrincipal.remove();
+            // message final
+            const messageWrap = create('div');
+            messageWrap.style.textAlign='center';
+            messageWrap.style.marginTop='40px';
+            messageWrap.innerHTML = `
+                <h1 style="color:red;">TE QUIERO MI BEIBI !!!</h1>
+                <p style="font-size:20px;">!!! Solo quiero lo mejor para ti este año !!!<br>Mucho éxito y aún más amor &lt;3</p>
             `;
-            document.body.appendChild(message);
+            // show within stage area (we cleared before)
+            stage.appendChild(messageWrap);
         }
     });
+}
+
+/* =========================
+   Fumée réaliste (dense, écran complet)
+   ========================= */
+let smokeInterval = null;
+function startSmokeDense(){
+    // avoid duplicates
+    if(document.getElementById('smokeLayer')) return;
+    const smokeLayer = create('div'); smokeLayer.id = 'smokeLayer';
+    smokeLayer.style.position='fixed';
+    smokeLayer.style.left='0'; smokeLayer.style.top='0';
+    smokeLayer.style.width='100%'; smokeLayer.style.height='100%';
+    smokeLayer.style.pointerEvents='none';
+    smokeLayer.style.overflow='hidden';
+    smokeLayer.style.zIndex='1100';
+    document.body.appendChild(smokeLayer);
+
+    smokeInterval = setInterval(() => {
+        // spawn several puffs across the screen
+        const count = 3 + Math.floor(Math.random()*3);
+        for(let i=0;i<count;i++){
+            const puff = create('div');
+            const size = 40 + Math.random()*120; // varied big puffs
+            const startX = Math.random() * window.innerWidth;
+            puff.style.position='absolute';
+            puff.style.left = (startX - size/2) + 'px';
+            puff.style.bottom = '-80px';
+            puff.style.width = size + 'px';
+            puff.style.height = size + 'px';
+            puff.style.borderRadius = '50%';
+            // gradient + soft white
+            puff.style.background = 'radial-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.05))';
+            puff.style.filter = 'blur(8px)';
+            puff.style.opacity = '0.85';
+            puff.style.transform = 'translateY(0) scale(1)';
+            puff.style.transition = 'all 5500ms cubic-bezier(.2,.8,.2,1)';
+            smokeLayer.appendChild(puff);
+
+            // animate
+            setTimeout(()=> {
+                const dx = (Math.random()-0.5) * 200;
+                const dy = - (200 + Math.random()*420);
+                puff.style.transform = `translate(${dx}px, ${dy}px) scale(${1.6 + Math.random()*1.8})`;
+                puff.style.opacity = '0';
+            }, 60);
+
+            // cleanup
+            setTimeout(()=> { puff.remove(); }, 5800 + Math.random()*300);
+        }
+    }, 220); // frequent spawns for dense effect
+}
+
+function stopSmoke(){
+    clearInterval(smokeInterval);
+    smokeInterval = null;
+    const layer = document.getElementById('smokeLayer');
+    if(layer) layer.remove();
+}
+
+/* =========================
+   Utilitaires
+   ========================= */
+function clearStage(){
+    // clear stage content but keep stage and borders
+    stage.innerHTML = '';
+}
+
+function create(tag, text){
+    const el = document.createElement(tag);
+    if(text !== undefined) {
+        if(tag === 'img') el.src = text;
+        else el.textContent = text;
+    }
+    return el;
+}
+
+/* =========================
+   Résize safe handlers (keeps active elements within viewport)
+   ========================= */
+window.addEventListener('resize', () => {
+    // optional: could adjust smoke spawn; kept simple
 });
-
-
-}, 3000); // atte
-
-});
-
-    });
-});
-    });
-
-});
-
-        });
-    </script>
-
+</script>
 </body>
 </html>
