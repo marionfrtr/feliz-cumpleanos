@@ -5,24 +5,34 @@
     <title>Feliz cumpleaños</title>
     <style>
         h1 {
-            color: red; /* Titre en rouge */
+            color: red;
             font-family: Arial, sans-serif;
+            text-align: center;
         }
         body {
-            text-align: center;
-            margin-top: 50px;
             font-family: Arial, sans-serif;
+            margin-top: 50px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px;
+        }
+        .col {
+            width: 45%;
+            text-align: center;
         }
         img {
-            width: 300px; /* Taille de l'image */
-            border-radius: 15px; /* arrondir les coins (optionnel) */
+            width: 300px;
+            border-radius: 15px;
         }
         p {
             font-size: 20px;
-            margin-top: 30px;
+            margin-bottom: 20px;
         }
-        a button {
-            margin-top: 20px;
+        button {
+            margin-top: 30px;
             padding: 12px 25px;
             font-size: 18px;
             border: none;
@@ -30,23 +40,302 @@
             background-color: red;
             color: white;
             cursor: pointer;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
-        a button:hover {
+        button:hover {
             background-color: #b30000;
         }
     </style>
 </head>
 <body>
-
     <h1>Feliz cumpleaños mon coeur &lt;3</h1>
 
-    <img src="dessin1.jpg" alt="image d'anniversaire">
+<img src="dessin1.jpg" style="display:block; margin:auto;">
 
-    <p>!!! Para celebrarlo conmigo haz un clic abajo !!!</p>
+<p style="text-align:center;">!!! Para celebrarlo conmigo haz un clic abajo !!!</p>
 
-        <button>Quiero ir a tu fiesta !</button>
+<button id="btnFiesta">Quiero ir a tu fiesta !</button>
 
+<!-- Conteneur pour les confettis -->
+<div id="confetti-container" style="position:absolute; top:0; left:0; width:100%; height:0; pointer-events:none;"></div>
+
+<script>
+// Fonction pour créer un confetti
+function createConfetti() {
+    const confetti = document.createElement('div');
+    confetti.style.position = 'absolute';
+    confetti.style.width = Math.random() * 10 + 5 + 'px';
+    confetti.style.height = confetti.style.width;
+    confetti.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+    confetti.style.top = '-20px';
+    confetti.style.left = Math.random() * window.innerWidth + 'px';
+    confetti.style.opacity = Math.random() + 0.5;
+    confetti.style.borderRadius = '50%';
+    confetti.style.pointerEvents = 'none';
+    confetti.style.zIndex = 1000;
+
+    document.body.appendChild(confetti);
+
+    // Animation descente
+    const duration = Math.random() * 3000 + 3000; // 3-6 secondes
+    const end = window.innerHeight + 20;
+
+    const start = performance.now();
+    function animate(time) {
+        const elapsed = time - start;
+        const progress = elapsed / duration;
+        if(progress < 1){
+            confetti.style.top = progress * end + 'px';
+            confetti.style.transform = `rotate(${progress * 360}deg)`;
+            requestAnimationFrame(animate);
+        } else {
+            confetti.remove();
+        }
+    }
+    requestAnimationFrame(animate);
+}
+
+// Générer plusieurs confettis par intervalle
+const confettiInterval = setInterval(createConfetti, 100);
+
+// Optionnel : arrêter après 5 secondes
+setTimeout(() => clearInterval(confettiInterval), 5000);
+        const btn = document.getElementById("btnFiesta");
+
+        btn.addEventListener("click", () => {
+
+            document.body.innerHTML = ""; // Nettoyage
+
+            // Nouveau titre
+            const title = document.createElement("h1");
+            title.textContent = "🎉 Bienvenida a tu fiesta mi beibi !!! 🎉";
+            document.body.appendChild(title);
+
+            // Conteneur gauche/droite
+            const row = document.createElement("div");
+            row.className = "row";
+
+            // ---- COLONNE GAUCHE ----
+            const colLeft = document.createElement("div");
+            colLeft.className = "col";
+
+            const text1 = document.createElement("p");
+            text1.textContent = "Aunque estamos lejos ...";
+
+            const img1 = document.createElement("img");
+            img1.src = "dessin3.jpg";
+
+            colLeft.appendChild(text1);
+            colLeft.appendChild(img1);
+
+            // ---- COLONNE DROITE ----
+            const colRight = document.createElement("div");
+            colRight.className = "col";
+
+            const text2 = document.createElement("p");
+            text2.textContent = "Vamos a celebrarlo juntos 💖";
+
+            const img2 = document.createElement("img");
+            img2.src = "dessin2.jpg";
+            colRight.appendChild(img2);
+            colRight.appendChild(text2);
+            
+
+            // Ajout du bloc
+            row.appendChild(colLeft);
+            row.appendChild(colRight);
+
+            document.body.appendChild(row);
+
+            // ---- NOUVEAU BOUTON ----
+            const btnNext = document.createElement("button");
+            btnNext.textContent = "Por aqui ❤️";
+            document.body.appendChild(btnNext);
+
+            btnNext.addEventListener("click", () => {
+    document.body.innerHTML = "";
+
+    // Conteneur horizontal
+    const container = document.createElement("div");
+    container.style.display = "flex";
+    container.style.justifyContent = "center";
+    container.style.alignItems = "center";
+    container.style.gap = "40px";
+    container.style.marginTop = "40px";
+
+    // ---- IMAGE CLIQUABLE (à gauche) ----
+    const imgClickable = document.createElement("img");
+    imgClickable.src = "personne souffle.jpg"; // ton image cliquable
+    imgClickable.style.width = "250px";
+    imgClickable.style.cursor = "pointer";
+
+    // ---- IMAGE PRINCIPALE (dessin4) ----
+    const imgFinal = document.createElement("img");
+    imgFinal.src = "gateau.jpg";
+    imgFinal.style.width = "300px";
+
+    // On ajoute les 2 images côte à côte
+    container.appendChild(imgClickable);
+    container.appendChild(imgFinal);
+
+    document.body.appendChild(container);
+
+    // ---- ZONE POUR AJOUTER LE GÂTEAU ----
+    const gateauZone = document.createElement("div");
+    gateauZone.style.textAlign = "center";
+    gateauZone.style.marginTop = "35px";
+
+    document.body.appendChild(gateauZone);
+
+    // ---- ACTION DE L’IMAGE CLIQUABLE ----
+    imgClickable.addEventListener("click", () => {
+        const gateau = document.createElement("img");
+        gateau.src = "souffler.jpg";  // ton gâteau
+        gateau.style.width = "300px";
+        gateau.style.display = "block";
+        gateau.style.margin = "auto";
+        gateauZone.appendChild(gateau);
+
+         const btnContinue = document.createElement("button");
+    btnContinue.textContent = "Por tu regalito 🎁";
+    btnContinue.style.display = "block";
+    btnContinue.style.margin = "40px auto";
+    document.body.appendChild(btnContinue);
+
+    btnContinue.addEventListener("click", () => {
+    document.body.innerHTML = "";
+
+    // --- Première image : don_cadeau ---
+    const imgDon = document.createElement("img");
+    imgDon.src = "don cadeau.jpg";
+    imgDon.style.width = "300px";
+    imgDon.style.display = "block";
+    imgDon.style.margin = "40px auto";
+    imgDon.style.cursor = "pointer";
+
+    document.body.appendChild(imgDon);
+
+    // Zone pour regalo
+    const regaloZone = document.createElement("div");
+    regaloZone.style.textAlign = "center";
+    document.body.appendChild(regaloZone);
+
+    // Zone pour pingouin
+    const pingouinZone = document.createElement("div");
+    pingouinZone.style.textAlign = "center";
+    document.body.appendChild(pingouinZone);
+
+    // --- CLIC SUR DON = montrer regalo ---
+    imgDon.addEventListener("click", () => {
+        // Crée et affiche regalo
+        const imgRegalo = document.createElement("img");
+        imgRegalo.src = "regalo.jpg";
+        imgRegalo.style.width = "300px";
+        imgRegalo.style.display = "block";
+        imgRegalo.style.margin = "20px auto";
+        imgRegalo.style.cursor = "pointer";
+
+        regaloZone.appendChild(imgRegalo);
+
+        imgRegalo.addEventListener("click", () => {
+    const imgPingouin = document.createElement("img");
+    imgPingouin.src = "pingouin.jpg";
+    imgPingouin.style.width = "300px";
+    imgPingouin.style.display = "block";
+    imgPingouin.style.margin = "20px auto";
+
+    pingouinZone.appendChild(imgPingouin);
+
+    // --- Après 2 secondes, ajouter le bouton coeur animé ---
+    setTimeout(() => {
+    const btnCoeur = document.createElement("button");
+    btnCoeur.innerHTML = "❤️"; // emoji cœur
+    btnCoeur.id = "btnCoeur";
+
+    // Style pour animation horizontale droite -> gauche
+    btnCoeur.style.position = "absolute";
+    btnCoeur.style.top = "50%";      // vertical centré
+    btnCoeur.style.right = "-50px";  // commencer à droite hors écran
+    btnCoeur.style.fontSize = "50px";
+    btnCoeur.style.border = "none";
+    btnCoeur.style.background = "transparent";
+    btnCoeur.style.cursor = "pointer";
+    btnCoeur.style.transform = "translateY(-50%)"; // centrer verticalement
+
+    document.body.appendChild(btnCoeur);
+
+    // Animation CSS : droite -> gauche
+    btnCoeur.animate([
+        { right: '-50px' },
+        { right: '100vw' }  // traverse tout l'écran vers la gauche
+    ], {
+        duration: 10000,   // 6 secondes
+        iterations: 1,
+        easing: 'linear'
+    });
+
+    btnCoeur.addEventListener("click", () => {
+   document.body.innerHTML = ""; // Nettoyage
+
+    // Créer le cœur interactif aléatoire
+    const coeur = document.createElement("img");
+    coeur.src = "coeur.jpeg";
+    coeur.style.width = "100px";
+    coeur.style.position = "absolute";
+    coeur.style.cursor = "pointer";
+    document.body.appendChild(coeur);
+
+    let clicks = 0;
+
+    function positionAleatoire() {
+        const x = Math.random() * (window.innerWidth - 100);
+        const y = Math.random() * (window.innerHeight - 100);
+        coeur.style.left = x + "px";
+        coeur.style.top = y + "px";
+    }
+
+    // Position initiale
+    positionAleatoire();
+
+    // Gestion des clics
+    coeur.addEventListener("click", () => {
+        clicks++;
+
+        if (clicks < 3) {
+            // Déplacer le cœur aléatoirement
+            positionAleatoire();
+        } else {
+            // Dernier clic : afficher le message final
+            coeur.remove();
+
+            const message = document.createElement("div");
+            message.innerHTML = `
+                <h1 style="text-align:center; color:red;">TE QUIERO MI BEIBI !!!</h1>
+                <p style="text-align:center; font-size:20px;">
+                    !!! Solo quiero lo mejor para ti este año !!!<br>
+                    Mucho éxito y aún más amor &lt;3
+                </p>
+            `;
+            document.body.appendChild(message);
+        }
+    });
+});
+
+
+}, 1000); // atte
+
+});
+
+    });
+});
+    });
+
+});
+
+        });
+    </script>
 
 </body>
 </html>
-
